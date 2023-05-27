@@ -16,6 +16,7 @@ public class TableGame extends JPanel {
     public JPanel deck = new JPanel();
     private JPanel consolePane = new JPanel();
     private JTextArea console = new JTextArea();
+    private boolean hasQuit = false; 
     
     public TableGame() { 
         s.setTableGame(this);
@@ -30,6 +31,20 @@ public class TableGame extends JPanel {
         JLabel title = new JLabel("Scopa Semplice!");
         title.setFont(new Font("Arial", Font.BOLD, 32));
         title.setForeground(Color.WHITE);
+
+        JButton quit = new JButton("abbandona");
+        quit.addActionListener((ActionEvent e) -> {
+            try {
+                if(s.getCS() != null)
+                    s.getCS().risposta("QU" + s.getId());  
+            }
+            catch(Exception er) {
+                er.printStackTrace();
+            }
+            hasQuit = true;
+        });
+        quit.setBackground(Color.DARK_GRAY);
+        quit.setForeground(Color.WHITE);
         
         JButton searchMatch = new JButton("cerca una partita");
         searchMatch.setBackground(Color.DARK_GRAY);
@@ -39,6 +54,7 @@ public class TableGame extends JPanel {
             titleBar.remove(searchMatch);
             titleBar.validate();
             titleBar.repaint();
+            titleBar.add(quit);
         });
         Border margin = BorderFactory.createEmptyBorder(10, 10, 10, 20);
         titleBar.setBorder(margin);
@@ -74,6 +90,12 @@ public class TableGame extends JPanel {
             try {
                 String cards = s.getCS().risposta("DS" + s.getId());
                 SwingUtilities.invokeLater(() -> console.setText("in Attesa di altri giocatori"));
+                if(hasQuit == true) {
+                    t.stop();
+                    SwingUtilities.invokeLater(() -> console.setText("partita Abbandonata"));
+                    new MatchConnection();
+                    hasQuit = false;
+                }
                 if (cards.compareTo("WA") != 0) {
                     t.stop();
                     SwingUtilities.invokeLater(() -> console.setText(console.getText() + '\n' + "Partita al completo!  \n \n distribuzione carte"));
@@ -133,6 +155,10 @@ public class TableGame extends JPanel {
                                 cardsOnTable.repaint();
                             }
                         }
+                        else {
+                            cardsOnTable.removeAll();
+                            cardsOnTable.repaint();
+                        }
                     }
 
                     case "TX" -> {
@@ -155,6 +181,10 @@ public class TableGame extends JPanel {
                                 cardsOnTable.repaint();
                             }
                         }
+                        else {
+                            cardsOnTable.removeAll();
+                            cardsOnTable.repaint();
+                        }
                         win();
                        if(s.getWin()) {
                         t.stop();
@@ -174,7 +204,8 @@ public class TableGame extends JPanel {
 
     private void win() {
         s.setWin(false);
-        if(deck.getComponentCount() == 0) {
+        System.out.println(deck.getComponentCount());
+        if(deck.getComponentCount() <= 1) {
             System.out.println("Siamo dentro!");
             Timer tScore = new Timer(3000, null);
             tScore.addActionListener((ActionEvent e) -> {
@@ -192,6 +223,8 @@ public class TableGame extends JPanel {
                             console.setText("");
                             cardsOnTable.removeAll();
                             cardsOnTable.revalidate();
+                            s.geTimer().stop();
+                            s.getCS().risposta("QU" + s.getId()); 
                             new MatchConnection();
                         }
         
@@ -205,6 +238,8 @@ public class TableGame extends JPanel {
                             console.setText("");
                             cardsOnTable.removeAll();
                             cardsOnTable.revalidate();
+                            s.geTimer().stop();
+                            s.getCS().risposta("QU" + s.getId()); 
                             new MatchConnection();
                         }
         

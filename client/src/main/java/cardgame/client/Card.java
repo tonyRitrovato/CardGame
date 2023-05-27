@@ -2,10 +2,11 @@ package cardgame.client;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.imageio.ImageIO;
+import java.io.InputStream;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.net.URL;
 
 public class Card extends JToggleButton implements ActionListener, MouseListener{
     
@@ -20,15 +21,9 @@ public class Card extends JToggleButton implements ActionListener, MouseListener
         super();
         setValue(value);
         setSuite(suite);
-        String imagePath = "./assets/" + value + suite + ".png"; // percorso dell'immagine all'interno del classpath
         Border border = BorderFactory.createLineBorder(new Color(40,40,40), 3);
-        URL imgUrl = getClass().getResource(imagePath);
-        if (imgUrl == null) {
-            // gestione dell'errore se l'immagine non viene trovata
-            throw new Exception("Impossibile trovare l'immagine: " + imagePath);
-        }
         addMouseListener(this);
-        ImageIcon image = new ImageIcon(imgUrl);
+        ImageIcon image = new ImageIcon(ImageIO.read(getFileFromResourceAsStream("assets/" + value + suite + ".png")));
         Image img = image.getImage().getScaledInstance(larghezza, altezza, Image.SCALE_SMOOTH);
         icon = new ImageIcon(img);
         setIcon(icon);
@@ -63,6 +58,10 @@ public class Card extends JToggleButton implements ActionListener, MouseListener
                         s.getTableGame().cardsOnTable.repaint();
                     }
                 }
+                else {
+                    s.getTableGame().cardsOnTable.removeAll();
+                    s.getTableGame().cardsOnTable.repaint();
+                }
                 s.geTimer().start();
             }
             else
@@ -92,6 +91,18 @@ public class Card extends JToggleButton implements ActionListener, MouseListener
 
     public void removeMouseListener() {
         removeMouseListener(this);
+    }
+
+    private static InputStream getFileFromResourceAsStream(String fileName) {
+
+        ClassLoader classLoader = Card.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream(fileName);
+
+        if (inputStream == null) {
+            throw new IllegalArgumentException("file not found! " + fileName);
+        } else {
+            return inputStream;
+        }
     }
 
     @Override
